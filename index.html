@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ads Recovery AI — Web Prototype</title>
+<style>
+:root{--bg:#0b1220;--panel:#121e30;--panel2:#18263b;--line:#293b54;--text:#edf3fb;--muted:#9aabc1;--blue:#3987f5;--green:#42c98a;--amber:#e5ad4d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Inter,Segoe UI,Arial,sans-serif}
+.app{display:flex;min-height:100vh}.side{width:245px;background:#080f1b;border-right:1px solid var(--line);padding:24px 16px;display:flex;flex-direction:column;gap:24px}
+.brand{font-weight:800;font-size:18px;letter-spacing:.3px}.brand span{color:#6ba8ff}.tag{color:var(--muted);font-size:10px;letter-spacing:1.3px;margin-top:4px}
+nav{display:grid;gap:7px}nav button{border:0;background:transparent;color:#b8c6d9;text-align:left;padding:12px;border-radius:9px;cursor:pointer;font-size:14px}nav button.active,nav button:hover{background:#1a2a41;color:#fff}
+.sidefoot{margin-top:auto;color:var(--muted);font-size:12px}.main{flex:1;padding:30px;max-width:1500px;margin:auto;width:100%}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;gap:15px}.eyebrow{color:#7faef0;font-size:11px;font-weight:700;letter-spacing:1.5px}.top h1{margin:5px 0 0;font-size:27px}.status{border:1px solid #315b4a;background:#10291f;color:#81e0b3;padding:7px 11px;border-radius:30px;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:29px;margin:8px 0 2px}.stat em{font-style:normal;color:var(--muted);font-size:12px}
+.section{margin-top:20px}.section h2{font-size:17px;margin:0 0 12px}.muted{color:var(--muted)}.quick{display:flex;align-items:center;justify-content:space-between;gap:15px}
+button.primary,.primary{background:var(--blue);color:white;border:0;border-radius:9px;padding:11px 16px;font-weight:700;cursor:pointer}.secondary{background:#23354d;color:#eaf2fc;border:1px solid #3b506b;border-radius:9px;padding:10px 14px;cursor:pointer}
+.page{display:none}.page.active{display:block}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;color:#b9c8dc;font-weight:600}
+input,textarea,select{width:100%;background:#0d1929;border:1px solid #344963;border-radius:8px;color:var(--text);padding:11px;font:inherit;outline:none}textarea{min-height:110px;resize:vertical}input:focus,textarea:focus,select:focus{border-color:#5b9cff}
+.upload{border:1px dashed #49617f;border-radius:10px;padding:20px;text-align:center;background:#0e1a2b}.upload input{max-width:260px;background:transparent;border:0}
+.result{margin-top:16px;display:none}.scoreline{display:flex;align-items:center;gap:15px}.score{font-size:34px;font-weight:800}.meter{height:9px;background:#293b54;border-radius:20px;overflow:hidden;flex:1}.meter i{display:block;height:100%;background:var(--amber);width:0}
+.finding{padding:12px;border:1px solid var(--line);border-radius:9px;margin-top:9px;background:#101b2b}.finding b{display:block;margin-bottom:3px}.pill{font-size:11px;border-radius:20px;padding:3px 8px;background:#3b3020;color:#ffd48a}
+.checklist{display:grid;gap:12px}.check{display:flex;gap:10px;padding:12px;background:#101b2b;border:1px solid var(--line);border-radius:9px}.check input{width:auto}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);font-size:13px}th{color:#9fb0c6;font-weight:600}
+.notice{padding:13px;border:1px solid #66502d;background:#2a2115;color:#f4d69e;border-radius:9px;font-size:12px;margin-top:14px}
+footer{color:var(--muted);font-size:11px;margin-top:24px}
+@media(max-width:850px){.side{width:190px}.main{padding:22px}.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.app{display:block}.side{width:100%;padding:14px}.sidefoot{display:none}nav{grid-template-columns:repeat(2,1fr)}.main{padding:18px}.grid,.formgrid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.field.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+ <div><div class="brand">◈ ADS <span>RECOVERY</span> AI</div><div class="tag">WEB WORKSPACE • PROTOTYPE</div></div>
+ <nav>
+  <button class="active" data-page="dashboard">⌂ &nbsp; Dashboard</button>
+  <button data-page="analyze">＋ &nbsp; Analyze Creative</button>
+  <button data-page="recovery">↻ &nbsp; Recovery Center</button>
+  <button data-page="history">▤ &nbsp; History</button>
+  <button data-page="settings">⚙ &nbsp; Settings</button>
+ </nav>
+ <div class="sidefoot">Version 0.1 · Local browser prototype<br>Data tersimpan di browser ini.</div>
+</aside>
+<main class="main">
+ <section id="dashboard" class="page active">
+  <div class="top"><div><div class="eyebrow">WORKSPACE OVERVIEW</div><h1>Dashboard</h1><div class="muted">Pantau dan periksa materi iklan Meta Ads & TikTok Ads.</div></div><span class="status">● Prototype aktif</span></div>
+  <div class="grid">
+   <div class="card stat"><small>Total analisis</small><strong id="totalCount">0</strong><em>Riwayat di browser ini</em></div>
+   <div class="card stat"><small>Meta Ads</small><strong id="metaCount">0</strong><em>Materi yang diperiksa</em></div>
+   <div class="card stat"><small>TikTok Ads</small><strong id="tiktokCount">0</strong><em>Materi yang diperiksa</em></div>
+  </div>
+  <div class="section panel quick"><div><h2>Mulai pemeriksaan iklan</h2><div class="muted">Unggah creative, masukkan copywriting, lalu jalankan analisis awal.</div></div><button class="primary" onclick="showPage('analyze')">＋ Analisis iklan</button></div>
+  <div class="section panel"><h2>Alur kerja</h2><div class="muted">1. Pilih platform &nbsp; → &nbsp; 2. Masukkan materi &nbsp; → &nbsp; 3. Periksa risiko &nbsp; → &nbsp; 4. Perbaiki &nbsp; → &nbsp; 5. Siapkan review.</div></div>
+  <div class="notice">Catatan: skor risiko di prototype ini adalah pemeriksaan heuristik sederhana, bukan keputusan resmi Meta/TikTok dan bukan jaminan iklan disetujui.</div>
+ </section>
+
+ <section id="analyze" class="page">
+  <div class="top"><div><div class="eyebrow">CREATIVE INTELLIGENCE</div><h1>Analyze Creative</h1><div class="muted">Pemeriksaan awal gambar/video, copy, dan URL tujuan.</div></div></div>
+  <div class="panel">
+   <div class="formgrid">
+    <div class="field"><label>Platform</label><select id="platform"><option>Meta Ads</option><option>TikTok Ads</option></select></div>
+    <div class="field"><label>Call to action</label><input id="cta" placeholder="Shop Now"></div>
+    <div class="field full"><label>Headline</label><input id="headline" placeholder="Contoh: Elegant Abaya Collection"></div>
+    <div class="field full"><label>Primary text / caption</label><textarea id="body" placeholder="Tuliskan teks iklan Anda..."></textarea></div>
+    <div class="field full"><label>Landing page URL (opsional)</label><input id="url" placeholder="https://toko-anda.com/produk"></div>
+    <div class="field full"><label>Gambar atau video</label><div class="upload"><input id="media" type="file" accept="image/*,video/*"><div class="muted" id="fileName">Pilih file gambar/video dari perangkat</div></div></div>
+   </div>
+   <div style="margin-top:16px"><button class="primary" onclick="analyze()">Jalankan pemeriksaan awal</button></div>
+   <div id="result" class="result">
+    <div class="section panel"><div class="eyebrow">ANALYSIS RESULT</div><h2 id="riskLabel">Hasil pemeriksaan</h2><div class="scoreline"><div class="score" id="score">0/100</div><div class="meter"><i id="meter"></i></div></div><div id="findings"></div><div class="notice" id="disclaimer"></div></div>
+   </div>
+  </div>
+ </section>
+
+ <section id="recovery" class="page">
+  <div class="top"><div><div class="eyebrow">POLICY & REVIEW WORKFLOW</div><h1>Recovery Center</h1><div class="muted">Checklist perbaikan dan draft permintaan peninjauan.</div></div></div>
+  <div class="panel">
+   <h2>Checklist sebelum mengajukan review</h2>
+   <div class="checklist">
+    <label class="check"><input type="checkbox"> Baca alasan penolakan dan identifikasi kebijakan yang disebutkan.</label>
+    <label class="check"><input type="checkbox"> Periksa gambar/video, teks, targeting, dan landing page.</label>
+    <label class="check"><input type="checkbox"> Pastikan klaim, harga, dan penawaran dapat dibuktikan.</label>
+    <label class="check"><input type="checkbox"> Jika keputusan keliru, ajukan review melalui kanal resmi platform.</label>
+    <label class="check"><input type="checkbox"> Jika ada pelanggaran, perbaiki materi secara substantif sebelum mengirim ulang.</label>
+   </div>
+  </div>
+  <div class="section panel">
+   <h2>Draft Request Review</h2>
+   <div class="field"><label>Jelaskan alasan penolakan dan konteks iklan</label><textarea id="reason" placeholder="Contoh: Produk yang diiklankan adalah abaya biasa, tidak mengandung klaim kesehatan atau produk terlarang..."></textarea></div>
+   <button class="primary" style="margin-top:12px" onclick="makeAppeal()">Buat draft bahasa Inggris</button>
+   <div class="field" style="margin-top:14px"><label>Draft</label><textarea id="appeal" placeholder="Draft akan muncul di sini..." style="min-height:180px"></textarea></div>
+   <button class="secondary" onclick="copyAppeal()">Salin draft</button>
+  </div>
+ </section>
+
+ <section id="history" class="page">
+  <div class="top"><div><div class="eyebrow">LOCAL RECORDS</div><h1>Analysis History</h1><div class="muted">Riwayat analisis tersimpan di local storage browser.</div></div><button class="secondary" onclick="clearHistory()">Hapus riwayat</button></div>
+  <div class="panel"><table><thead><tr><th>Tanggal</th><th>Platform</th><th>Headline</th><th>Skor</th><th>Indikasi</th></tr></thead><tbody id="historyRows"><tr><td colspan="5" class="muted">Belum ada analisis.</td></tr></tbody></table></div>
+ </section>
+
+ <section id="settings" class="page">
+  <div class="top"><div><div class="eyebrow">CONFIGURATION</div><h1>Settings</h1><div class="muted">Status integrasi dan batasan prototype.</div></div></div>
+  <div class="panel">
+   <h2>Status integrasi</h2>
+   <table><tbody>
+    <tr><td>Meta Marketing API</td><td class="muted">Belum terhubung</td></tr>
+    <tr><td>TikTok Marketing API</td><td class="muted">Belum terhubung</td></tr>
+    <tr><td>AI Vision / Language API</td><td class="muted">Belum terhubung</td></tr>
+    <tr><td>Riwayat lokal</td><td style="color:#73d9a5">Aktif — browser local storage</td></tr>
+   </tbody></table>
+   <div class="notice">Jangan masukkan password akun iklan di halaman ini. Integrasi berikutnya harus memakai OAuth resmi, izin yang sesuai, dan penyimpanan token yang aman.</div>
+  </div>
+ </section>
+ <footer>Ads Recovery AI · Prototype v0.1 · Pemeriksaan berbasis aturan lokal, bukan keputusan resmi platform.</footer>
+</main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function getHistory(){try{return JSON.parse(localStorage.getItem('arai_history')||'[]')}catch(e){return[]}}
+function setHistory(x){localStorage.setItem('arai_history',JSON.stringify(x))}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));if(id==='history')renderHistory();if(id==='dashboard')renderStats()}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+$('media').addEventListener('change',e=>{$('fileName').textContent=e.target.files[0]?.name||'Pilih file gambar/video dari perangkat'});
+function analyze(){
+ const platform=$('platform').value,headline=$('headline').value.trim(),body=$('body').value.trim(),cta=$('cta').value.trim(),url=$('url').value.trim(),file=$('media').files[0];
+ const text=(headline+' '+body+' '+cta).toLowerCase(), findings=[];
+ const rules=[
+  ['guaranteed','Klaim absolut','Hindari janji hasil yang tidak dapat dibuktikan.'],
+  ['100%','Klaim absolut','Pastikan klaim memiliki bukti dan konteks yang jelas.'],
+  ['pasti sembuh','Klaim kesehatan','Hindari klaim penyembuhan atau hasil medis yang pasti.'],
+  ['before after','Konten perbandingan personal','Tinjau kebijakan platform terkait before-after.'],
+  ['before/after','Konten perbandingan personal','Tinjau kebijakan platform terkait before-after.'],
+  ['termurah','Klaim superlatif','Siapkan bukti objektif atau gunakan deskripsi faktual.'],
+  ['nomor 1','Klaim peringkat','Cantumkan dasar pembuktian klaim peringkat.'],
+  ['menurunkan berat','Klaim berat badan','Tinjau kebijakan kategori kesehatan dan berat badan.'],
+  ['obat','Konteks produk teregulasi','Pastikan kategori produk dan klaim memenuhi aturan platform.']
+ ];
+ rules.forEach(([term,title,advice])=>{if(text.includes(term))findings.push({level:'Perlu ditinjau',title,detail:`Terdeteksi frasa “${term}”. ${advice}`})});
+ if(!headline)findings.push({level:'Info',title:'Headline belum diisi',detail:'Tambahkan headline yang menjelaskan produk secara faktual.'});
+ if(!body)findings.push({level:'Info',title:'Primary text belum diisi',detail:'Tambahkan informasi produk dan manfaat yang dapat dibuktikan.'});
+ if(url&&!/^https?:\/\//i.test(url))findings.push({level:'Perlu ditinjau',title:'Format URL tidak valid',detail:'Gunakan URL lengkap yang diawali https:// atau http://.'});
+ if(!file)findings.push({level:'Info',title:'Materi visual belum diunggah',detail:'Unggah creative untuk pemeriksaan visual pada versi AI berikutnya.'});
+ if(headline.length>80)findings.push({level:'Info',title:'Headline cukup panjang',detail:'Pertimbangkan headline yang lebih ringkas.'});
+ if(!findings.length)findings.push({level:'Info',title:'Tidak ada pemicu aturan dasar',detail:'Ini bukan jaminan iklan disetujui. Pemeriksaan kebijakan lengkap belum dilakukan.'});
+ const score=Math.min(95,12+findings.reduce((s,f)=>s+(f.level==='Perlu ditinjau'?19:5),0));
+ const label=score>=45?'Ada elemen yang perlu ditinjau':'Pemeriksaan awal relatif rendah';
+ $('riskLabel').textContent=label;$('score').textContent=score+'/100';$('meter').style.width=score+'%';
+ $('findings').innerHTML=findings.map(f=>`<div class="finding"><span class="pill">${f.level}</span><b>${f.title}</b><span class="muted">${f.detail}</span></div>`).join('');
+ $('disclaimer').textContent='Skor ini adalah indikator heuristik prototype, bukan keputusan resmi Meta/TikTok dan bukan prediksi persetujuan.';
+ $('result').style.display='block';
+ const item={date:new Date().toLocaleString('id-ID'),platform,headline,score,findings:findings.length};
+ const h=getHistory();h.unshift(item);setHistory(h.slice(0,200));renderStats();
+}
+function renderStats(){const h=getHistory();$('totalCount').textContent=h.length;$('metaCount').textContent=h.filter(x=>x.platform==='Meta Ads').length;$('tiktokCount').textContent=h.filter(x=>x.platform==='TikTok Ads').length}
+function renderHistory(){const h=getHistory();$('historyRows').innerHTML=h.length?h.map(x=>`<tr><td>${escapeHtml(x.date)}</td><td>${escapeHtml(x.platform)}</td><td>${escapeHtml(x.headline||'(tanpa headline)')}</td><td>${x.score}/100</td><td>${x.findings} temuan</td></tr>`).join(''):'<tr><td colspan="5" class="muted">Belum ada analisis.</td></tr>'}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function clearHistory(){if(confirm('Hapus semua riwayat analisis di browser ini?')){setHistory([]);renderHistory();renderStats()}}
+function makeAppeal(){const r=$('reason').value.trim();if(!r){alert('Masukkan konteks penolakan terlebih dahulu.');return}
+$('appeal').value=`Hello Meta Support Team,\n\nI would like to request a review of the rejected ad. I have reviewed the ad creative, ad copy, audience settings, and destination page against the applicable advertising policies.\n\nContext: ${r}\n\nPlease conduct a manual review and clarify the specific policy issue if the rejection is upheld. I am willing to make any necessary changes to ensure full policy compliance.\n\nThank you.`}
+async function copyAppeal(){const t=$('appeal').value;if(!t){alert('Buat draft terlebih dahulu.');return}try{await navigator.clipboard.writeText(t);alert('Draft berhasil disalin.')}catch(e){$('appeal').select();document.execCommand('copy');alert('Draft disalin.')}}
+renderStats();
+</script>
+</body></html>
