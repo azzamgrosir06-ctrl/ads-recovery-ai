@@ -299,7 +299,7 @@ async function getFFmpeg() {
     document.getElementById("videoPercent").textContent = pct + "%";
     document.getElementById("videoMeter").style.width = pct + "%";
   });
-  const base = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+  const base = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
   const coreURL = await toBlobURL(base + "/ffmpeg-core.js", "text/javascript");
   const wasmURL = await toBlobURL(base + "/ffmpeg-core.wasm", "application/wasm");
   // Serve the FFmpeg class worker from this GitHub Pages origin.
@@ -427,7 +427,7 @@ async function loadFBEngine(){
    const pct=Math.min(99,Math.round(progress*100));
    byId("fbMeter").style.width=pct+"%";
  });
- const base="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+ const base="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd";
  const coreURL=await toBlobURL(base+"/ffmpeg-core.js","text/javascript");
  const wasmURL=await toBlobURL(base+"/ffmpeg-core.wasm","application/wasm");
  const classWorkerURL=new URL("ffmpeg-worker.js",document.baseURI).href;
