@@ -35,6 +35,7 @@ footer{color:var(--muted);font-size:11px;margin-top:24px}
  <nav>
   <button class="active" data-page="dashboard">⌂ &nbsp; Dashboard</button>
   <button data-page="analyze">＋ &nbsp; Analyze Creative</button>
+  <button data-page="video">▶ &nbsp; Video Studio</button>
   <button data-page="recovery">↻ &nbsp; Recovery Center</button>
   <button data-page="history">▤ &nbsp; History</button>
   <button data-page="settings">⚙ &nbsp; Settings</button>
@@ -68,6 +69,32 @@ footer{color:var(--muted);font-size:11px;margin-top:24px}
    <div style="margin-top:16px"><button class="primary" onclick="analyze()">Jalankan pemeriksaan awal</button></div>
    <div id="result" class="result">
     <div class="section panel"><div class="eyebrow">ANALYSIS RESULT</div><h2 id="riskLabel">Hasil pemeriksaan</h2><div class="scoreline"><div class="score" id="score">0/100</div><div class="meter"><i id="meter"></i></div></div><div id="findings"></div><div class="notice" id="disclaimer"></div></div>
+   </div>
+  </div>
+ </section>
+
+
+ <section id="video" class="page">
+  <div class="top"><div><div class="eyebrow">MEDIA PROCESSING</div><h1>Video Studio</h1><div class="muted">Konversi dan optimasi video secara lokal di browser Anda.</div></div><span class="status">● Local processing</span></div>
+  <div class="panel">
+   <div class="notice" style="margin-top:0">Video diproses di browser Anda menggunakan FFmpeg WebAssembly. Fitur ini untuk kompatibilitas, ukuran file, dan privasi metadata — bukan untuk menghindari pemeriksaan iklan.</div>
+   <div class="formgrid" style="margin-top:16px">
+    <div class="field full"><label>Pilih video (MP4, MOV, WebM, AVI — maksimal 250 MB)</label><input id="videoInput" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,.mov,.mp4,.webm,.avi"></div>
+    <div class="field full"><label>Preview video</label><video id="videoPreview" controls playsinline style="display:none;width:100%;max-height:360px;background:#050a12;border-radius:10px"></video><div id="videoEmpty" class="upload muted">Belum ada video dipilih</div></div>
+    <div class="field"><label>Rasio / ukuran output</label><select id="videoRatio"><option value="1080:1920">9:16 — TikTok / Reels (1080 × 1920)</option><option value="1080:1080">1:1 — Feed (1080 × 1080)</option><option value="1920:1080">16:9 — Landscape (1920 × 1080)</option><option value="original">Pertahankan rasio asli (maks. lebar 1920)</option></select></div>
+    <div class="field"><label>Kualitas kompresi</label><select id="videoQuality"><option value="23">Tinggi — file lebih besar</option><option value="28" selected>Seimbang — rekomendasi</option><option value="32">Lebih kecil — kualitas lebih rendah</option></select></div>
+    <div class="field full"><label>Nama file output</label><input id="videoOutputName" value="ads-recovery-optimized.mp4"></div>
+   </div>
+   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px"><button class="primary" id="processVideoBtn" onclick="processVideo()">Proses & optimalkan video</button><button class="secondary" onclick="resetVideo()">Reset</button></div>
+   <div id="videoProgressWrap" style="display:none;margin-top:18px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:7px"><b id="videoStatus">Menyiapkan...</b><span id="videoPercent">0%</span></div>
+    <div class="meter"><i id="videoMeter" style="width:0%"></i></div>
+    <div class="muted" id="videoLog" style="font-size:12px;margin-top:8px;white-space:pre-wrap"></div>
+   </div>
+   <div id="videoResult" class="finding" style="display:none;margin-top:16px">
+    <b>Video selesai diproses</b><div id="videoResultInfo" class="muted"></div>
+    <video id="videoOutputPreview" controls playsinline style="width:100%;max-height:340px;background:#050a12;border-radius:10px;margin-top:10px"></video>
+    <button class="primary" id="downloadVideoBtn" style="margin-top:12px">Download video MP4</button>
    </div>
   </div>
  </section>
@@ -160,4 +187,136 @@ $('appeal').value=`Hello Meta Support Team,\n\nI would like to request a review 
 async function copyAppeal(){const t=$('appeal').value;if(!t){alert('Buat draft terlebih dahulu.');return}try{await navigator.clipboard.writeText(t);alert('Draft berhasil disalin.')}catch(e){$('appeal').select();document.execCommand('copy');alert('Draft disalin.')}}
 renderStats();
 </script>
+
+<script type="module">
+import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { toBlobURL, fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/esm/index.js";
+
+let ffmpegInstance = null;
+let inputVideoUrl = null;
+let outputVideoUrl = null;
+let outputVideoBlob = null;
+let selectedVideo = null;
+
+const videoInput = document.getElementById("videoInput");
+if (videoInput) {
+  videoInput.addEventListener("change", () => {
+    const file = videoInput.files?.[0];
+    if (!file) return;
+    if (file.size > 250 * 1024 * 1024) {
+      alert("Ukuran video melebihi batas prototype 250 MB.");
+      videoInput.value = "";
+      return;
+    }
+    selectedVideo = file;
+    if (inputVideoUrl) URL.revokeObjectURL(inputVideoUrl);
+    inputVideoUrl = URL.createObjectURL(file);
+    const preview = document.getElementById("videoPreview");
+    preview.src = inputVideoUrl;
+    preview.style.display = "block";
+    document.getElementById("videoEmpty").style.display = "none";
+    document.getElementById("videoOutputName").value =
+      (file.name.replace(/\.[^.]+$/, "") || "video") + "-optimized.mp4";
+    document.getElementById("videoResult").style.display = "none";
+  });
+}
+
+async function getFFmpeg() {
+  if (ffmpegInstance) return ffmpegInstance;
+  const ffmpeg = new FFmpeg();
+  ffmpeg.on("log", ({ message }) => {
+    const log = document.getElementById("videoLog");
+    if (log) log.textContent = message.slice(-500);
+  });
+  ffmpeg.on("progress", ({ progress }) => {
+    const pct = Math.max(0, Math.min(99, Math.round(progress * 100)));
+    document.getElementById("videoPercent").textContent = pct + "%";
+    document.getElementById("videoMeter").style.width = pct + "%";
+  });
+  const base = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+  const coreURL = await toBlobURL(base + "/ffmpeg-core.js", "text/javascript");
+  const wasmURL = await toBlobURL(base + "/ffmpeg-core.wasm", "application/wasm");
+  await ffmpeg.load({ coreURL, wasmURL });
+  ffmpegInstance = ffmpeg;
+  return ffmpeg;
+}
+
+window.processVideo = async function() {
+  if (!selectedVideo) { alert("Pilih video terlebih dahulu."); return; }
+  const btn = document.getElementById("processVideoBtn");
+  const wrap = document.getElementById("videoProgressWrap");
+  btn.disabled = true; btn.textContent = "Sedang memproses...";
+  wrap.style.display = "block";
+  document.getElementById("videoStatus").textContent = "Memuat mesin video...";
+  document.getElementById("videoPercent").textContent = "0%";
+  document.getElementById("videoMeter").style.width = "0%";
+  document.getElementById("videoLog").textContent = "Mengunduh komponen FFmpeg dari CDN untuk pertama kali. Ini memerlukan koneksi internet.";
+  try {
+    const ffmpeg = await getFFmpeg();
+    const ext = (selectedVideo.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const inputName = "input." + ext;
+    const outputName = "output.mp4";
+    try { await ffmpeg.deleteFile(inputName); } catch(e) {}
+    try { await ffmpeg.deleteFile(outputName); } catch(e) {}
+    document.getElementById("videoStatus").textContent = "Membaca video...";
+    await ffmpeg.writeFile(inputName, await fetchFile(selectedVideo));
+
+    const ratio = document.getElementById("videoRatio").value;
+    const crf = document.getElementById("videoQuality").value;
+    let vf;
+    if (ratio === "original") {
+      vf = "scale='min(1920,iw)':-2";
+    } else {
+      const [w,h] = ratio.split(":");
+      vf = `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2`;
+    }
+    document.getElementById("videoStatus").textContent = "Mengonversi dan mengoptimalkan...";
+    const args = ["-i", inputName, "-vf", vf, "-c:v", "libx264", "-preset", "veryfast", "-crf", crf,
+                  "-c:a", "aac", "-b:a", "128k", "-map_metadata", "-1", "-movflags", "+faststart", outputName];
+    const code = await ffmpeg.exec(args);
+    if (code !== 0) throw new Error("FFmpeg tidak dapat menyelesaikan konversi. Coba file video lain.");
+    const data = await ffmpeg.readFile(outputName);
+    outputVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
+    if (outputVideoUrl) URL.revokeObjectURL(outputVideoUrl);
+    outputVideoUrl = URL.createObjectURL(outputVideoBlob);
+    const preview = document.getElementById("videoOutputPreview");
+    preview.src = outputVideoUrl;
+    const oldSize = (selectedVideo.size / 1024 / 1024).toFixed(2);
+    const newSize = (outputVideoBlob.size / 1024 / 1024).toFixed(2);
+    document.getElementById("videoResultInfo").textContent =
+      `Ukuran awal: ${oldSize} MB · Ukuran hasil: ${newSize} MB · Metadata sumber tidak disalin ke output.`;
+    const rawName = document.getElementById("videoOutputName").value.trim() || "ads-recovery-optimized.mp4";
+    const safeName = rawName.toLowerCase().endsWith(".mp4") ? rawName : rawName + ".mp4";
+    document.getElementById("downloadVideoBtn").onclick = () => {
+      const a = document.createElement("a"); a.href = outputVideoUrl; a.download = safeName; a.click();
+    };
+    document.getElementById("videoResult").style.display = "block";
+    document.getElementById("videoStatus").textContent = "Selesai";
+    document.getElementById("videoPercent").textContent = "100%";
+    document.getElementById("videoMeter").style.width = "100%";
+  } catch (err) {
+    console.error(err);
+    document.getElementById("videoStatus").textContent = "Gagal memproses";
+    document.getElementById("videoLog").textContent = String(err?.message || err);
+    alert("Video gagal diproses. Periksa koneksi internet, ukuran file, dan format video. Detail: " + (err?.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = "Proses & optimalkan video";
+  }
+};
+
+window.resetVideo = function() {
+  selectedVideo = null;
+  document.getElementById("videoInput").value = "";
+  document.getElementById("videoPreview").removeAttribute("src");
+  document.getElementById("videoPreview").style.display = "none";
+  document.getElementById("videoEmpty").style.display = "block";
+  document.getElementById("videoProgressWrap").style.display = "none";
+  document.getElementById("videoResult").style.display = "none";
+  if (inputVideoUrl) URL.revokeObjectURL(inputVideoUrl);
+  if (outputVideoUrl) URL.revokeObjectURL(outputVideoUrl);
+  inputVideoUrl = outputVideoUrl = null;
+  outputVideoBlob = null;
+};
+</script>
+
 </body></html>

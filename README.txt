@@ -1,25 +1,21 @@
-ADS RECOVERY AI — WEB PROTOTYPE v0.1
+ADS RECOVERY AI — WEB PROTOTYPE v0.2
 
-Cara menjalankan:
-1. Ekstrak ZIP.
-2. Buka file index.html dengan Chrome, Edge, atau browser modern.
-3. Tidak perlu instalasi atau server untuk prototype ini.
+Cara update GitHub Pages:
+1. Buka repository GitHub Anda.
+2. Klik Add file > Upload files.
+3. Upload index.html versi v0.2 ini untuk menggantikan file lama.
+4. Commit changes.
+5. Tunggu GitHub Pages selesai deploy, lalu refresh website dengan Ctrl+F5.
 
-Fitur:
-- Dashboard Meta Ads / TikTok Ads
-- Input headline, primary text, CTA, URL tujuan
-- Pilih file gambar/video (file belum diunggah ke server)
-- Pemeriksaan heuristik dasar berbasis frasa
-- Skor risiko indikatif
-- Recovery checklist dan draft Request Review
-- Riwayat lokal menggunakan localStorage browser
+Video Studio:
+- Memproses video di browser menggunakan FFmpeg WebAssembly yang dimuat dari CDN.
+- Konversi ke MP4 H.264/AAC.
+- Rasio 9:16, 1:1, 16:9, atau pertahankan rasio.
+- Pilihan kualitas kompresi.
+- Metadata sumber tidak disalin ke output.
+- File diproses lokal di browser; tidak diunggah ke server aplikasi.
+- Batas prototype: 250 MB; perlu koneksi internet untuk memuat FFmpeg dari CDN.
 
-Batasan:
-- Belum menggunakan AI model/API.
-- Belum menganalisis isi visual gambar/video.
-- Belum memindai landing page.
-- Belum terhubung ke Meta Marketing API atau TikTok Marketing API.
-- Skor bukan keputusan atau prediksi resmi persetujuan platform.
-- Tidak ada cloaking atau penghindaran sistem review.
-
-Untuk versi produksi, perlu backend, autentikasi, penyimpanan aman, integrasi AI, OAuth resmi, dan kebijakan privasi.
+Catatan:
+Fitur ini ditujukan untuk kompatibilitas format, kompresi, ukuran, dan privasi metadata. Bukan untuk menghindari sistem review atau mengubah fingerprint agar lolos moderasi iklan.
+AI Vision, policy analysis berbasis sumber resmi, landing-page scanner, dan integrasi akun iklan belum tersedia pada prototype ini.
