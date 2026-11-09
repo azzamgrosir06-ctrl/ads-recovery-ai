@@ -36,6 +36,7 @@ footer{color:var(--muted);font-size:11px;margin-top:24px}
   <button class="active" data-page="dashboard">⌂ &nbsp; Dashboard</button>
   <button data-page="analyze">＋ &nbsp; Analyze Creative</button>
   <button data-page="video">▶ &nbsp; Video Studio</button>
+  <button data-page="facebook-video">▣ &nbsp; Facebook Video Studio</button>
   <button data-page="recovery">↻ &nbsp; Recovery Center</button>
   <button data-page="history">▤ &nbsp; History</button>
   <button data-page="settings">⚙ &nbsp; Settings</button>
@@ -96,6 +97,71 @@ footer{color:var(--muted);font-size:11px;margin-top:24px}
     <video id="videoOutputPreview" controls playsinline style="width:100%;max-height:340px;background:#050a12;border-radius:10px;margin-top:10px"></video>
     <button class="primary" id="downloadVideoBtn" style="margin-top:12px">Download video MP4</button>
    </div>
+  </div>
+ </section>
+
+
+ <section id="facebook-video" class="page">
+  <div class="top"><div><div class="eyebrow">FACEBOOK MEDIA WORKFLOW</div><h1>Facebook Video Studio</h1><div class="muted">Optimasi batch video, cover representatif, dan ekspor MP4 yang konsisten.</div></div><span class="status">● Local processing</span></div>
+  <div class="panel">
+   <div class="notice" style="margin-top:0">Semua output mempertahankan isi video yang sama dengan materi sumber. Cover adalah thumbnail representatif; tidak ada pergantian video untuk pemeriksa dan penonton atau pengelabuan review.</div>
+   <div class="section" style="margin-top:15px">
+    <h2>Versi pemrosesan</h2>
+    <div class="formgrid">
+     <label class="check"><input type="radio" name="fbVersion" value="v1" checked><span><b>V1 — Cepat</b><br><span class="muted">Konversi cepat, cocok untuk pemrosesan rutin.</span></span></label>
+     <label class="check"><input type="radio" name="fbVersion" value="v2"><span><b>V2 — Kualitas</b><br><span class="muted">Preset encoding lebih lambat dengan kompresi lebih efisien.</span></span></label>
+    </div>
+   </div>
+   <div class="formgrid section">
+    <div class="field">
+     <label>Original videos (maksimal 20 file, masing-masing 250 MB)</label>
+     <input id="fbVideos" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,.mov,.mp4,.webm,.avi" multiple>
+     <div id="fbVideoNames" class="muted">Belum ada video dipilih.</div>
+    </div>
+    <div class="field">
+     <label>Cover image (JPG, PNG, WEBP)</label>
+     <input id="fbCover" type="file" accept="image/jpeg,image/png,image/webp">
+     <div id="fbCoverName" class="muted">Belum ada cover dipilih.</div>
+     <button class="secondary" type="button" id="fbExtractCover">Ambil frame representatif dari video pertama</button>
+     <canvas id="fbCoverCanvas" style="display:none;max-width:100%;border-radius:8px"></canvas>
+     <div class="muted">Pembuatan cover AI generatif belum diaktifkan pada prototype ini. Tombol di atas mengambil frame nyata dari video.</div>
+    </div>
+    <div class="field">
+     <label>Processing level</label>
+     <select id="fbLevel"><option value="basic">Basic — kompresi ringan</option><option value="standard" selected>Standard — seimbang</option><option value="maximum">Maximum — ukuran lebih kecil, proses lebih lama</option></select>
+    </div>
+    <div class="field">
+     <label>Output aspect ratio</label>
+     <select id="fbRatio"><option value="original">Pertahankan rasio asli</option><option value="1080:1080">1:1 — Feed</option><option value="1080:1920">9:16 — Reels</option><option value="1920:1080">16:9 — Landscape</option></select>
+    </div>
+   </div>
+   <details class="section">
+    <summary style="cursor:pointer;font-weight:700">Advanced settings (optional)</summary>
+    <div class="formgrid" style="margin-top:14px">
+     <div class="field"><label>Output width limit</label><select id="fbWidth"><option value="1280">1280 px</option><option value="1920" selected>1920 px</option><option value="1080">1080 px</option></select></div>
+     <div class="field"><label>Audio</label><select id="fbAudio"><option value="keep" selected>Keep audio (AAC)</option><option value="mute">Remove audio</option></select></div>
+     <div class="field"><label>Output filename suffix</label><input id="fbSuffix" value="-optimized"></div>
+    </div>
+   </details>
+   <div class="section" style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="primary" id="fbProcess" type="button">Optimalkan semua video</button>
+    <button class="secondary" id="fbReset" type="button">Reset</button>
+   </div>
+   <div id="fbProgress" class="section" style="display:none">
+    <div class="scoreline"><b id="fbStatus">Menyiapkan...</b><span id="fbProgressText">0/0</span></div>
+    <div class="meter"><i id="fbMeter" style="width:0%"></i></div>
+    <div id="fbLog" class="muted" style="font-size:12px;margin-top:8px;white-space:pre-wrap"></div>
+   </div>
+  </div>
+  <div class="grid section" style="grid-template-columns:1.2fr .8fr">
+   <div class="panel"><h2>Summary</h2><table><tbody>
+    <tr><td>Videos selected</td><td id="fbSummaryVideos">—</td></tr>
+    <tr><td>Cover</td><td id="fbSummaryCover">—</td></tr>
+    <tr><td>Version</td><td id="fbSummaryVersion">V1</td></tr>
+    <tr><td>Level</td><td id="fbSummaryLevel">Standard</td></tr>
+    <tr><td>Completed</td><td id="fbSummaryDone">0</td></tr>
+   </tbody></table></div>
+   <div class="panel"><h2>Results</h2><div id="fbResults" class="muted">Belum ada file diproses.</div></div>
   </div>
  </section>
 
@@ -236,7 +302,10 @@ async function getFFmpeg() {
   const base = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
   const coreURL = await toBlobURL(base + "/ffmpeg-core.js", "text/javascript");
   const wasmURL = await toBlobURL(base + "/ffmpeg-core.wasm", "application/wasm");
-  await ffmpeg.load({ coreURL, wasmURL });
+  // Serve the FFmpeg class worker from this GitHub Pages origin.
+  // The same-origin shim imports the official worker module from jsDelivr.
+  const classWorkerURL = new URL("ffmpeg-worker.js", document.baseURI).href;
+  await ffmpeg.load({ coreURL, wasmURL, classWorkerURL });
   ffmpegInstance = ffmpeg;
   return ffmpeg;
 }
@@ -317,6 +386,127 @@ window.resetVideo = function() {
   inputVideoUrl = outputVideoUrl = null;
   outputVideoBlob = null;
 };
+</script>
+
+
+<script type="module">
+import { FFmpeg } from "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js";
+import { toBlobURL, fetchFile } from "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/esm/index.js";
+
+let fbFFmpeg=null, fbFiles=[], fbCoverObjectUrl=null, fbGeneratedCover=null, fbOutputs=[];
+const byId=id=>document.getElementById(id);
+const fbInput=byId("fbVideos"), fbCoverInput=byId("fbCover");
+if(fbInput){
+ fbInput.addEventListener("change",()=>{
+  fbFiles=Array.from(fbInput.files||[]);
+  if(fbFiles.length>20){alert("Maksimal 20 video. Pilih ulang maksimal 20 file.");fbInput.value="";fbFiles=[];}
+  const tooLarge=fbFiles.find(f=>f.size>250*1024*1024);
+  if(tooLarge){alert("Ada video lebih dari 250 MB: "+tooLarge.name);fbInput.value="";fbFiles=[];}
+  byId("fbVideoNames").textContent=fbFiles.length?fbFiles.map(f=>f.name).join(" • "):"Belum ada video dipilih.";
+  byId("fbSummaryVideos").textContent=fbFiles.length||"—";
+ });
+}
+if(fbCoverInput){
+ fbCoverInput.addEventListener("change",()=>{
+  const f=fbCoverInput.files?.[0];
+  byId("fbCoverName").textContent=f?f.name:"Belum ada cover dipilih.";
+  byId("fbSummaryCover").textContent=f?"Uploaded":"—";
+  fbGeneratedCover=null;
+ });
+}
+document.querySelectorAll('input[name="fbVersion"]').forEach(el=>el.addEventListener("change",()=>{
+ byId("fbSummaryVersion").textContent=el.value.toUpperCase();
+}));
+byId("fbLevel")?.addEventListener("change",e=>byId("fbSummaryLevel").textContent=e.target.selectedOptions[0].text.split(" — ")[0]);
+
+async function loadFBEngine(){
+ if(fbFFmpeg)return fbFFmpeg;
+ const ff=new FFmpeg();
+ ff.on("log",({message})=>{byId("fbLog").textContent=String(message).slice(-400);});
+ ff.on("progress",({progress})=>{
+   const pct=Math.min(99,Math.round(progress*100));
+   byId("fbMeter").style.width=pct+"%";
+ });
+ const base="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd";
+ const coreURL=await toBlobURL(base+"/ffmpeg-core.js","text/javascript");
+ const wasmURL=await toBlobURL(base+"/ffmpeg-core.wasm","application/wasm");
+ const classWorkerURL=new URL("ffmpeg-worker.js",document.baseURI).href;
+ await ff.load({coreURL,wasmURL,classWorkerURL});
+ fbFFmpeg=ff; return ff;
+}
+byId("fbExtractCover")?.addEventListener("click",async()=>{
+ if(!fbFiles.length){alert("Pilih video terlebih dahulu.");return;}
+ const video=document.createElement("video");
+ const url=URL.createObjectURL(fbFiles[0]);
+ video.src=url; video.muted=true; video.playsInline=true;
+ try{
+  await new Promise((resolve,reject)=>{video.onloadeddata=resolve;video.onerror=reject;});
+  video.currentTime=Math.min(1,Math.max(0,video.duration*.1));
+  await new Promise(resolve=>{video.onseeked=resolve;setTimeout(resolve,2500);});
+  const canvas=byId("fbCoverCanvas");
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  canvas.getContext("2d").drawImage(video,0,0,canvas.width,canvas.height);
+  canvas.style.display="block";
+  canvas.toBlob(blob=>{
+   fbGeneratedCover=blob;
+   byId("fbCoverName").textContent="Frame representatif dari "+fbFiles[0].name;
+   byId("fbSummaryCover").textContent="Generated from video frame";
+  },"image/jpeg",.92);
+ }catch(e){alert("Tidak bisa mengambil frame dari video ini.");}
+ finally{URL.revokeObjectURL(url);video.remove();}
+});
+byId("fbProcess")?.addEventListener("click",async()=>{
+ if(!fbFiles.length){alert("Pilih minimal satu video.");return;}
+ const btn=byId("fbProcess");btn.disabled=true;btn.textContent="Sedang memproses...";
+ byId("fbProgress").style.display="block";byId("fbResults").innerHTML="";
+ fbOutputs=[];
+ try{
+  const ff=await loadFBEngine();
+  const version=document.querySelector('input[name="fbVersion"]:checked')?.value||"v1";
+  const level=byId("fbLevel").value, ratio=byId("fbRatio").value;
+  const width=Number(byId("fbWidth").value), audio=byId("fbAudio").value;
+  const crf=level==="basic"?23:level==="maximum"?31:27;
+  const preset=version==="v1"?"veryfast":"medium";
+  const suffix=(byId("fbSuffix").value||"-optimized").replace(/[^a-zA-Z0-9_-]/g,"");
+  const resultRoot=byId("fbResults");
+  for(let i=0;i<fbFiles.length;i++){
+   const file=fbFiles[i],ext=(file.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");
+   const inputName="fb_in_"+i+"."+ext,outputName="fb_out_"+i+".mp4";
+   byId("fbStatus").textContent="Memproses "+(i+1)+"/"+fbFiles.length+": "+file.name;
+   byId("fbProgressText").textContent=(i+1)+"/"+fbFiles.length;
+   try{await ff.deleteFile(inputName)}catch(e){} try{await ff.deleteFile(outputName)}catch(e){}
+   await ff.writeFile(inputName,await fetchFile(file));
+   let vf;
+   if(ratio==="original") vf=`scale='min(${width},iw)':-2`;
+   else {const [w,h]=ratio.split(":");vf=`scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2`;}
+   const args=["-i",inputName,"-vf",vf,"-c:v","libx264","-preset",preset,"-crf",String(crf)];
+   if(audio==="mute")args.push("-an");else args.push("-c:a","aac","-b:a","128k");
+   args.push("-map_metadata","-1","-movflags","+faststart",outputName);
+   const code=await ff.exec(args);
+   if(code!==0)throw new Error("FFmpeg exit code "+code);
+   const data=await ff.readFile(outputName);
+   const blob=new Blob([data.buffer],{type:"video/mp4"});
+   const outUrl=URL.createObjectURL(blob);
+   const outName=file.name.replace(/\.[^.]+$/,"")+suffix+".mp4";
+   fbOutputs.push({name:outName,url:outUrl,size:blob.size});
+   const item=document.createElement("div");item.className="finding";
+   const title=document.createElement("b");title.textContent="✓ "+outName;
+   const detail=document.createElement("div");detail.className="muted";detail.textContent=(file.size/1048576).toFixed(2)+" MB → "+(blob.size/1048576).toFixed(2)+" MB";
+   const link=document.createElement("a");link.href=outUrl;link.download=outName;link.textContent="Download MP4";link.style.color="#7db4ff";link.style.display="inline-block";link.style.marginTop="7px";
+   item.append(title,detail,link);resultRoot.appendChild(item);
+  }
+  byId("fbStatus").textContent="Selesai";byId("fbMeter").style.width="100%";
+  byId("fbSummaryDone").textContent=fbOutputs.length;
+ }catch(e){console.error(e);byId("fbStatus").textContent="Gagal memproses";byId("fbLog").textContent=String(e?.message||e);alert("Pemrosesan gagal: "+(e?.message||e));}
+ finally{btn.disabled=false;btn.textContent="Optimalkan semua video";}
+});
+byId("fbReset")?.addEventListener("click",()=>{
+ fbFiles=[];fbInput.value="";fbCoverInput.value="";
+ byId("fbVideoNames").textContent="Belum ada video dipilih.";byId("fbCoverName").textContent="Belum ada cover dipilih.";
+ byId("fbSummaryVideos").textContent="—";byId("fbSummaryCover").textContent="—";byId("fbSummaryDone").textContent="0";
+ byId("fbCoverCanvas").style.display="none";byId("fbProgress").style.display="none";byId("fbResults").textContent="Belum ada file diproses.";
+ fbOutputs.forEach(o=>URL.revokeObjectURL(o.url));fbOutputs=[];fbGeneratedCover=null;
+});
 </script>
 
 </body></html>
